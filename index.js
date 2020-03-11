@@ -14,8 +14,8 @@ const server = new AuthServer({
 // Tell bns which zone we're serving.
 // Change to your HSD name. Remember to
 // add the . at the end
-server.setOrigin('laboratory.')
-server.setFile(__dirname + '/zonefile')
+server.setOrigin(process.env.ZONE)
+server.setFile(__dirname + '/zone/zonefile')
 server.on('query', (req, res, rinfo) => {
   // Log all requests (dig format).
   console.log('Incoming request:')
@@ -23,30 +23,9 @@ server.on('query', (req, res, rinfo) => {
 })
 server.bind(53, '0.0.0.0')
 
-//////////////////////////////////////////////////////////////////
-/// Simple File server
-
-const fileServer = http.createServer((request, response) => {
-  console.log('Serving: ' + request.headers.host)
-  let requestedSite = request.headers.host.split('.')[0]
-
-  /// Check to see all folders you are serving
-  const directories = readdirSync(__dirname + '/public', {
-    withFileTypes: true
-  })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name)
-
-  if (!directories.includes(requestedSite)) {
-    requestedSite = 'default'
-  }
-
-  return handler(request, response, {
-    cleanUrls: true,
-    public: `public/${requestedSite}`
-  })
-})
-
-fileServer.listen(80, () => {
-  console.log('Running at http://localhost:80')
-})
+http.createServer(function (req, res) {
+  console.log("Handling request to " + req.headers.host);
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.write("Welcome to " + req.headers.host);
+  res.end();
+}).listen(process.env.PORT || 80, '0.0.0.0');
